@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Experian Score Dial</title>
+
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Open+Sans);
+
+      body {
+        font-family: "Open Sans", sans-serif;
+        background-color: #e3e3e3;
+      }
+
+      .container {
+        width: 400px;
+        height: 400px;
+        margin: 0 auto;
+        position: relative;
+      }
+
+      #score-dial {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        transform: rotateX(180deg);
+      }
+
+      .score-band-wrapper {
+        position: absolute;
+        top: 40%;
+        width: 100%;
+        text-align: center;
+      }
+
+      .score-band-wrapper .score-band-label {
+        font-weight: bold;
+        font-size: 30px;
+        line-height: 20px;
+      }
+
+      .score-band-wrapper small {
+        display: block;
+        font-weight: 300;
+        font-size: 16px;
+        line-height: 12px;
+      }
+
+      .score-dial-wrapper {
+        margin: 0 auto;
+        top: -40%;
+        width: 60%;
+        position: relative;
+        text-align: center;
+      }
+
+      .score-dial-wrapper input {
+        width: 100%;
+      }
+
+      .legend {
+        margin-top: 60px;
+      }
+
+      .legend li {
+        border-left: 20px solid #fff;
+        padding: 10px;
+        list-style-type: none;
+        font-size: 14px;
+      }
+
+      .legend li.excellent {
+        border-color: #1f9c4c;
+      }
+
+      .legend li.good {
+        border-color: #91c738;
+      }
+
+      .legend li.fair {
+        border-color: #fadd00;
+      }
+
+      .legend li.poor {
+        border-color: #f79a38;
+      }
+
+      .legend li.vpoor {
+        border-color: #bd2727;
+      }
+    </style>
+
+  </head>
+
+  <body>
+    <div class="container">
+
+      <svg height="500px" width="500px">
+        <circle class="grey" fill="none" stroke="#ffffff" stroke-width="30" cx="200" cy="200" r="140"
+           stroke-dasharray="748, 132" stroke-dashoffset="594" />
+        <!-- offset = circumference * 0.75 - ((circumference - customCircumference) / 2) = 660 - 66 = 594 -->
+
+        <circle id="red" fill="none" stroke="#bd2727" stroke-width="30" cx="200" cy="200" r="140"
+          stroke-dasharray="0, 598" stroke-dashoffset="594" />
+
+        <circle id="orange" fill="none" stroke="#f79a38" stroke-width="30" cx="200" cy="200" r="140"
+          stroke-dasharray="0, 598" stroke-dashoffset="444" />
+
+        <circle id="yellow" fill="none" stroke="#fadd00" stroke-width="30" cx="200" cy="200" r="140"
+          stroke-dasharray="0, 598" stroke-dashoffset="294" />
+
+        <circle id="green" fill="none" stroke="#91c738" stroke-width="30" cx="200" cy="200" r="140"
+          stroke-dasharray="0, 598" stroke-dashoffset="144" />
+
+        <circle id="light-green" fill="none" stroke="#1f9c4c" stroke-width="30" cx="200" cy="200" r="140"
+          stroke-dasharray="0, 598" stroke-dashoffset="-4" />   <!-- +2 to compensate for rounding up arcLength  -->
+      </svg>
+
+      <div class="score-band-wrapper">
+        <small>Your score band is</small>
+        <p id="score-band-label" class="score-band-label">Excellent</p>
+      </div>
+
+      <div class="score-dial-wrapper">
+        <input id="fader" type="range" min="0" max="999" value="0" step="1" oninput="handleFader()">
+        Your score is
+        <p id="score-dial-value" class="score-dial-value">0</p>
+      </div>
+    </div>
+
+    <ul class="legend">
+      <li class="excellent">Excellent: 961 - 999</li>
+      <li class="good">Good: 881 - 960</li>
+      <li class="fair">Fair: 721 - 880</li>
+      <li class="poor">Poor: 561 - 720</li>
+      <li class="vpoor">Very Poor: 0 - 560</li>
+    </ul>
+
+    <script type="text/jscript">
+      const radius = 140;
+      const circumference = Math.ceil(2 * Math.PI * radius);         // 880
+      const customCircumference = Math.ceil(circumference * 0.85);   // 748
+      const arcLength = Math.ceil(customCircumference / 5);          // 150
+      const offset = Math.ceil(arcLength * 5);                       // 750
+
+      console.log('circumference: ', circumference);
+      console.log('customCircumference: ', customCircumference);
+      console.log('arcLength: ', arcLength);
+      console.log('offset: ', offset);
+
+      const redRange = 560;
+      const orangeRange = 720 - 560;                      // 160
+      const yellowRange = 880 - 720;                      // 160
+      const greenRange = 960 - 880;                       // 80
+      const lightGreenRange = 999 - 960                   // 39
+
+
+      const handleFader = (value = this.event.target.value) => {
+        const setSegment = (segment, size) => {
+          document.getElementById(segment).setAttribute('stroke-dasharray', `${size}, ${circumference - size}`);
+        };
+
+        const setScoreBandLabel = (label) => {
+          document.getElementById('score-band-label').innerText = label;
+        };
+
+        document.getElementById('score-dial-value').innerText = value.toString();
+
+        if (value <= 560) {
+          const redSize = (arcLength / redRange) * value;
+          setSegment('red', redSize);
+          setScoreBandLabel('Very Poor');
+        } else setSegment('red', arcLength);
+
+        if (value > 560) {
+          if (value <= 720) {
+            const orangeSize = (arcLength / orangeRange) * (value - 560);
+            setSegment('orange', orangeSize);
+            setScoreBandLabel('Poor');
+          } else setSegment('orange', arcLength);
+        } else setSegment('orange', 0);
+
+        if (value > 720) {
+          if (value <= 880) {
+            const yellowSize = (arcLength / yellowRange) * (value - 720);
+            setSegment('yellow', yellowSize);
+            setScoreBandLabel('Fair');
+          } else setSegment('yellow', arcLength);
+        } else setSegment('yellow', 0);
+
+        if (value > 880) {
+          if (value <= 960) {
+            const greenSize = (arcLength / greenRange) * (value - 880);
+            setSegment('green', greenSize);
+            setScoreBandLabel('Good');
+          } else setSegment('green', arcLength);
+        } else setSegment('green', 0);
+
+        if (value > 960) {
+          if (value <= 999) {
+            const lightGreenSize = (arcLength / lightGreenRange) * (value - 960);
+            setSegment('light-green', lightGreenSize);
+            setScoreBandLabel('Excellent');
+          } else setSegment('light-green', arcLength);
+        } else setSegment('light-green', 0);
+      };
+
+      handleFader(document.getElementById('fader').value);
+    </script>
+  </body>
+</html>
