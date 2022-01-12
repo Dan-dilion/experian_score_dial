@@ -160,49 +160,60 @@
           document.getElementById(segment).setAttribute('stroke-dasharray', `${size}, ${circumference - size}`);
         };
 
+        const setSegmentVisible = (segment, display) => {                                   // It was necessary to hide the segment when the dash value was 0
+          document.getElementById(segment).style['display'] = (display ? '' : 'none');      // because Safari seems to think that 0 = 1 and there was a coloured
+        }                                                                                   // single pixel line at the beginning of each segment
+
         const setScoreBandLabel = (label) => {
           document.getElementById('score-band-label').innerText = label;
         };
 
         document.getElementById('score-dial-value').innerText = value.toString();
 
-        if (value <= 560) {
-          const redSize = (arcLength / redRange) * value;
-          setSegment('red', redSize);
-          setScoreBandLabel('Very Poor');
-        } else setSegment('red', arcLength);
+        if (value > 0) {
+          setSegmentVisible('red', true);
+          if (value <= 560) {
+            const redSize = (arcLength / redRange) * value;
+            setSegment('red', redSize);
+            setScoreBandLabel('Very Poor');
+          } else setSegment('red', arcLength);
+        } else setSegmentVisible('red', false);
 
         if (value > 560) {
+          setSegmentVisible('orange', true);
           if (value <= 720) {
             const orangeSize = (arcLength / orangeRange) * (value - 560);
             setSegment('orange', orangeSize);
             setScoreBandLabel('Poor');
           } else setSegment('orange', arcLength);
-        } else setSegment('orange', 0);
+        } else setSegmentVisible('orange', false);
 
         if (value > 720) {
+          setSegmentVisible('yellow', true);
           if (value <= 880) {
             const yellowSize = (arcLength / yellowRange) * (value - 720);
             setSegment('yellow', yellowSize);
             setScoreBandLabel('Fair');
           } else setSegment('yellow', arcLength);
-        } else setSegment('yellow', 0);
+        } else setSegmentVisible('yellow', false);
 
         if (value > 880) {
+          setSegmentVisible('green', true);
           if (value <= 960) {
             const greenSize = (arcLength / greenRange) * (value - 880);
             setSegment('green', greenSize);
             setScoreBandLabel('Good');
           } else setSegment('green', arcLength);
-        } else setSegment('green', 0);
+        } else setSegmentVisible('green', false);
 
         if (value > 960) {
+          setSegmentVisible('light-green', true);
           if (value <= 999) {
             const lightGreenSize = (arcLength / lightGreenRange) * (value - 960);
             setSegment('light-green', lightGreenSize);
             setScoreBandLabel('Excellent');
           } else setSegment('light-green', arcLength);
-        } else setSegment('light-green', 0);
+        } else setSegmentVisible('light-green', false);
       };
 
       handleFader(document.getElementById('fader').value);
